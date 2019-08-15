@@ -289,32 +289,21 @@ func addDefaultCommands(commands []cli.Command) []cli.Command {
 				fmt.Println(err.Error())
 				os.Exit(1)
 			}
-			tmpl, err := template.New("test").Parse(`
-<?xml version="1.0" encoding="UTF-8"?>
-<framework xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="schemas/frameworkDescriptionVersion1.1.4.xsd" name="Custom_ahoy" invoke=" ` + path + `" alias="ahoy" enabled="true" version="2" />
+			tmpl, err := template.New("test").Parse(`<?xml version="1.0" encoding="UTF-8"?>
+<framework xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="schemas/frameworkDescriptionVersion1.1.4.xsd" name="Custom_ahoy" invoke=" ` + path + `" alias="ahoy" enabled="true" version="2">
 {{range .}}
 	<command> <!--the command's container-->
-		<name>
-			{{.Name}}
-		</name>
-		<help>
-			<!--the command's help message, optional-->
-			{{.Usage}}
-			{{.Description}}
-		</help>
-		<params>
-			<!--the command's parameters and their default values-->
-		</params>
-		<optionsBefore> <!--the command's options container-->
-			<option name="" shortcut=""> <!--the option itself, mandatory, and non-empty;
-			you can also provide a shorthand abbreviation and the usage pattern via attributes-->
-				<help>
-					<!--the command's help message, optional-->
-				</help>
-			</option>
-		</optionsBefore>
+		<name>{{.Name}}</name>
+<!--the command's help message, optional-->
+		<help><![CDATA[
+            <p>Usage:<br>
+            	{{.Usage}}
+            </p>
+            <p>{{.Description}}</p>
+        ]]></help>
 	</command>
-{{end}}`)
+{{end}}
+</framework>`)
 			if err != nil {
 				fmt.Println(err.Error())
 				os.Exit(1)
