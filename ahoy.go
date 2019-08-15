@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/template"
 )
 
 // Config handles the overall configuration in an ahoy.yml file
@@ -278,10 +279,55 @@ func addDefaultCommands(commands []cli.Command) []cli.Command {
 		},
 	}
 
+	generateIdeaDefintions := cli.Command{
+		Name:        "gen-idea",
+		Usage:       "ahoy gen-idea > .idea/commandlinetools/Custom_ahoy.xml",
+		Description: "Create config for jetbrains editor command tool",
+		Action: func(c *cli.Context) {
+			path, err := filepath.Abs(os.Args[0])
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+			tmpl, err := template.New("test").Parse(`
+<?xml version="1.0" encoding="UTF-8"?>
+<framework xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="schemas/frameworkDescriptionVersion1.1.4.xsd" name="Custom_ahoy" invoke=" ` + path + `" alias="ahoy" enabled="true" version="2" />
+{{range .}}
+	<command> <!--the command's container-->
+		<name>
+			{{.Name}}
+		</name>
+		<help>
+			<!--the command's help message, optional-->
+			{{.Usage}}
+			{{.Description}}
+		</help>
+		<params>
+			<!--the command's parameters and their default values-->
+		</params>
+		<optionsBefore> <!--the command's options container-->
+			<option name="" shortcut=""> <!--the option itself, mandatory, and non-empty;
+			you can also provide a shorthand abbreviation and the usage pattern via attributes-->
+				<help>
+					<!--the command's help message, optional-->
+				</help>
+			</option>
+		</optionsBefore>
+	</command>
+{{end}}`)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+			err = tmpl.Execute(os.Stdout, c.App.Commands)
+		},
+	}
+
 	// Don't add default commands if they've already been set.
 	if c := app.Command(defaultInitCmd.Name); c == nil {
 		commands = append(commands, defaultInitCmd)
 	}
+	commands = append(commands, generateIdeaDefintions)
 	return commands
 }
 
